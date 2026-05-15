@@ -151,17 +151,16 @@ def background_download(url, quality, file_id):
         'no_warnings': True,
     }
 
-    # Xử lý logic chia độ phân giải tự động
+    # THUẬT TOÁN MỚI: Tự động nhận diện mọi độ phân giải (Kể cả 2K, 4K, 8K)
     if quality == 'audio':
         ydl_opts.update({
             'format': 'bestaudio/best', 
             'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}]
         })
-    elif quality in ['1080p', '720p', '480p', '360p', '240p', '144p']:
-        # Lấy con số chiều cao (vd: từ '720p' lấy ra '720')
+    elif quality != 'best' and quality.endswith('p'):
+        # Lấy con số chiều cao (vd: '2160p' -> '2160')
         height = quality.replace('p', '')
-        # Tìm video có chiều cao <= mức chọn, nếu không có thì lấy bản tốt nhất có thể
-        ydl_opts['format'] = f'bestvideo[height<={height}]+bestaudio/best[height<={height}]/best'
+        ydl_opts['format'] = f'bestvideo[height<={height}]+bestaudio/best'
     else: 
         ydl_opts['format'] = 'bestvideo+bestaudio/best'
 

@@ -3,166 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Downloader Premium</title>
+    <title>Universal Video Downloader</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f0c29); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #fff; }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        :root {
+            --bg: linear-gradient(-45deg, #0f0c29, #302b63, #24243e);
+            --container-bg: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
+            --accent: #00f2fe;
+            --input-bg: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            --bg: linear-gradient(-45deg, #e0eafc, #cfdef3, #e0eafc);
+            --container-bg: rgba(255, 255, 255, 0.8);
+            --text: #1a1a1a;
+            --accent: #2563eb;
+            --input-bg: rgba(255, 255, 255, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--bg); background-size: 400% 400%; animation: grad 15s infinite; color: var(--text); overflow: hidden;}
+        @keyframes grad { 0% {background-position: 0% 50%} 50% {background-position: 100% 50%} 100% {background-position: 0% 50%} }
+
+        .container { background: var(--container-bg); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; width: 90%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); text-align: center; z-index: 10; position: relative;}
         
-        .glass-container { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 40px; width: 90%; max-width: 480px; box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2); text-align: center; position: relative; overflow: hidden; }
-        h2 { font-size: 28px; font-weight: 700; margin-bottom: 25px; background: linear-gradient(90deg, #00f2fe, #4facfe, #ff0844, #ffb199); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        input, select { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(0, 0, 0, 0.2); color: #fff; outline: none; }
+        .theme-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 24px; z-index: 100; }
         
-        /* Preview Card */
-        #previewCard { display: none; background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: left; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        #previewThumb { width: 70px; height: 90px; border-radius: 8px; object-fit: cover; }
-        .preview-info { flex: 1; overflow: hidden; }
-        .preview-uploader { font-size: 13px; color: #00f2fe; font-weight: bold; margin-bottom: 5px; }
-        .preview-title { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        h2 { font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
+        input, select { width: 100%; padding: 16px; margin-bottom: 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: var(--input-bg); color: var(--text); outline: none; }
+        
+        #previewCard { display: none; background: rgba(0,0,0,0.1); border-radius: 16px; padding: 15px; margin-bottom: 20px; align-items: center; gap: 15px; border-left: 5px solid var(--accent); }
+        #previewThumb { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; }
+        
+        .progress-box { width: 100%; background: rgba(0,0,0,0.1); height: 10px; border-radius: 5px; margin-bottom: 20px; display: none; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
-        /* Progress Bar */
-        .progress-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; margin-bottom: 15px; overflow: hidden; display: none; }
-        .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); transition: width 0.4s ease; }
+        button { padding: 18px; border: none; border-radius: 12px; background: var(--accent); color: white; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        button:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        button:disabled { filter: grayscale(1); cursor: not-allowed; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        #btn { flex: 1; }
+        #cancelBtn { display: none; background: #ff4757; width: 30%; }
 
-        button { width: 100%; padding: 15px; border: none; border-radius: 10px; background: linear-gradient(45deg, #00f2fe, #4facfe); color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:disabled { background: rgba(255, 255, 255, 0.1); cursor: not-allowed; }
-        #status { margin-top: 15px; font-size: 14px; }
+        /* CSS: Định vị icon mèo dễ thương ở góc */
+        #cornerCharacter {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 120px; /* Điều chỉnh kích thước vừa phải */
+            height: auto;
+            z-index: 1;
+            pointer-events: none; /* Không chặn chuột */
+            opacity: 0.9; /* Hơi mờ một chút cho tệp nền */
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2)); /* Thêm chút ánh hào quang */
+        }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
-<div class="glass-container">
-    <h2>TikTok Downloader</h2>
+<div class="theme-toggle" onclick="toggleTheme()">🌓</div>
+
+<img id="cornerCharacter" src="https://api.iconify.design/noto:cat.svg?color=%23ffffff&height=128" alt="Cute Cat Icon">
+<div class="container">
+    <h2 id="mainTitle">Universal Downloader</h2>
     
-    <input type="text" id="urlInput" placeholder="🔗 Dán link video TikTok vào đây..." autocomplete="off">
+    <input type="text" id="urlInput" placeholder="🔗 Dán link video (TikTok, YT, FB...)" autocomplete="off">
     
-    <div id="previewCard" style="display: none;">
-        <img id="previewThumb" src="" alt="Thumbnail">
-        <div class="preview-info">
-            <div class="preview-uploader" id="previewUploader">Loading...</div>
-            <div class="preview-title" id="previewTitle">Đang lấy dữ liệu video...</div>
+    <div id="previewCard">
+        <img id="previewThumb" src="">
+        <div style="text-align: left; flex: 1; overflow: hidden;">
+            <div id="pUploader" style="font-weight: 700; font-size: 14px; color: var(--accent);"></div>
+            <div id="pTitle" style="font-size: 12px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
         </div>
     </div>
 
-    <select id="qualitySelect">
-        <option value="video">🎬 Tải Video (Chất lượng cao nhất)</option>
+    <select id="quality">
+        <option value="best">🎬 Vui lòng dán link để xem các độ phân giải...</option>
         <option value="audio">🎵 Chỉ tải Âm thanh (MP3)</option>
     </select>
 
-    <div class="progress-container" id="progressContainer">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
+    <div class="progress-box" id="pBox"><div class="progress-fill" id="pFill"></div></div>
 
-    <button id="downloadBtn" onclick="startDownload()">Tải Xuống Ngay</button>
-    <div id="status"></div>
+    <div class="btn-group">
+        <button id="btn" onclick="startDownload()">Tải Xuống Ngay</button>
+        <button id="cancelBtn" onclick="cancelDownload()">Hủy</button>
+    </div>
+    
+    <div id="status" style="margin-top: 15px; font-size: 13px; font-weight: bold;"></div>
 </div>
 
 <script>
-    const urlInput = document.getElementById('urlInput');
-    const previewCard = document.getElementById('previewCard');
-    const previewThumb = document.getElementById('previewThumb');
-    const previewUploader = document.getElementById('previewUploader');
-    const previewTitle = document.getElementById('previewTitle');
-    const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    
-    let typingTimer;
+    function toggleTheme() {
+        const body = document.body;
+        body.dataset.theme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+    }
 
-    // Tự động lấy Preview khi dán link
+    const urlInput = document.getElementById('urlInput');
+    let previewTimer;
+    let currentFileId = null;
+    let eventSource = null;
+
     urlInput.addEventListener('input', () => {
-        clearTimeout(typingTimer);
+        clearTimeout(previewTimer);
         const url = urlInput.value.trim();
-        if(url) {
-            typingTimer = setTimeout(() => fetchPreview(url), 800);
-        } else {
-            previewCard.style.display = 'none';
-        }
+        if(url) previewTimer = setTimeout(() => getPreview(url), 800);
+        else document.getElementById('previewCard').style.display = 'none';
     });
 
-    async function fetchPreview(url) {
-        previewCard.style.display = 'flex';
-        previewUploader.innerText = 'Đang quét link...';
-        previewTitle.innerText = '';
-        previewThumb.src = 'https://via.placeholder.com/70x90/24243e/00f2fe?text=...';
-
+    async function getPreview(url) {
+        document.getElementById('previewCard').style.display = 'flex';
+        document.getElementById('pUploader').innerText = 'Đang quét dữ liệu...';
+        document.getElementById('pTitle').innerText = '';
+        
+        const qualitySelect = document.getElementById('quality');
+        qualitySelect.innerHTML = '<option value="best">⏳ Đang quét độ phân giải...</option>';
+        
         try {
             const res = await fetch('/api/preview', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url})
             });
             const data = await res.json();
+            
             if(data.success) {
-                previewUploader.innerText = '@' + data.uploader;
-                previewTitle.innerText = data.title;
-                previewThumb.src = data.thumbnail;
-            } else {
-                previewCard.style.display = 'none';
+                document.getElementById('pUploader').innerText = data.uploader;
+                document.getElementById('pTitle').innerText = data.title;
+                document.getElementById('previewThumb').src = data.thumbnail;
+                
+                if(data.platform.includes('Youtube')) document.documentElement.style.setProperty('--accent', '#ff0000');
+                else if(data.platform.includes('Facebook')) document.documentElement.style.setProperty('--accent', '#1877f2');
+                else document.documentElement.style.setProperty('--accent', '#00f2fe');
+
+                // --- TỰ ĐỘNG TẠO MENU ĐỘ PHÂN GIẢI ---
+                qualitySelect.innerHTML = ''; 
+                
+                if (data.resolutions && data.resolutions.length > 0) {
+                    data.resolutions.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.res;
+                        // Nối thêm dung lượng MB vào tên tùy chọn
+                        opt.innerText = `🎬 Video (${item.res}) • ${item.size}`;
+                        qualitySelect.appendChild(opt);
+                    });
+                } else {
+                    qualitySelect.innerHTML = '<option value="best">🎬 Tốt nhất (Mặc định)</option>';
+                }
+                
+                // Nút tải âm thanh cũng hiển thị số MB
+                const audioOpt = document.createElement('option');
+                audioOpt.value = "audio";
+                const aSize = data.audio_size || "Không rõ";
+                audioOpt.innerText = `🎵 Chỉ tải Âm thanh (MP3) • ${aSize}`;
+                qualitySelect.appendChild(audioOpt);
+                // ------------------------------------
             }
-        } catch (e) { previewCard.style.display = 'none'; }
+        } catch(e) {
+            qualitySelect.innerHTML = '<option value="best">🎬 Lỗi quét, lấy mặc định</option>';
+        }
     }
 
     async function startDownload() {
         const url = urlInput.value.trim();
-        const quality = document.getElementById('qualitySelect').value;
-        const btn = document.getElementById('downloadBtn');
-        const statusText = document.getElementById('status');
+        const quality = document.getElementById('quality').value;
+        const btn = document.getElementById('btn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const statusTxt = document.getElementById('status');
+        
+        if(!url) return;
 
-        if (!url) {
-            statusText.innerHTML = '<span style="color:#ff6b6b">⚠️ Vui lòng dán link!</span>';
-            return;
-        }
-
+        // Đổi giao diện nút bấm
         btn.disabled = true;
         btn.innerText = "Đang xử lý...";
-        progressContainer.style.display = "block";
-        progressBar.style.width = "10%";
-        statusText.innerHTML = '⏳ Đang kết nối máy chủ...';
-
-        // Giả lập thanh tiến trình mượt mà
-        let progress = 10;
-        let simInterval = setInterval(() => {
-            if(progress < 85) { progress += 5; progressBar.style.width = progress + '%'; }
-        }, 800);
-
+        cancelBtn.style.display = "block";
+        
+        document.getElementById('pBox').style.display = 'block';
+        document.getElementById('pFill').style.width = '0%';
+        statusTxt.innerText = "⏳ Đang khởi tạo...";
+        
         try {
-            const response = await fetch('/api/download', {
+            const res = await fetch('/api/download', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, quality })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url, quality})
             });
-
-            const data = await response.json();
-            clearInterval(simInterval);
-
-            if (response.ok && data.success) {
-                progressBar.style.width = "100%";
-                statusText.innerHTML = '<span style="color:#51cf66">✅ Đã xử lý xong! Đang tải về...</span>';
+            const data = await res.json();
+            
+            if(data.success) {
+                currentFileId = data.file_id;
+                eventSource = new EventSource(`/api/stream-progress/${data.file_id}`);
                 
-                setTimeout(() => {
-                    window.location.href = data.download_url;
-                    resetUI();
-                }, 1000);
-            } else {
-                statusText.innerHTML = `<span style="color:#ff6b6b">❌ ${data.error}</span>`;
-                resetUI();
-            }
-        } catch (error) {
-            clearInterval(simInterval);
-            statusText.innerHTML = '<span style="color:#ff6b6b">🔌 Mất kết nối!</span>';
-            resetUI();
-        }
+                eventSource.onmessage = (event) => {
+                    const prog = event.data;
+                    
+                    if(prog === "ERROR") {
+                        eventSource.close();
+                        statusTxt.innerHTML = "<span style='color:#ff6b6b'>❌ Lỗi khi tải video!</span>";
+                        resetUI();
+                        return;
+                    }
+                    
+                    if(prog === "CANCELLED") {
+                        eventSource.close();
+                        statusTxt.innerHTML = "<span style='color:#ff9f43'>⚠️ Đã hủy tải xuống!</span>";
+                        resetUI();
+                        return;
+                    }
+                    
+                    if(prog.startsWith("DONE|")) {
+                        const filename = prog.split("|")[1];
+                        eventSource.close();
+                        document.getElementById('pFill').style.width = '100%';
+                        statusTxt.innerHTML = "<span style='color:#51cf66'>✅ Tải thành công! Đang lưu về máy...</span>";
+                        
+                        setTimeout(() => {
+                            window.location.href = `/download-file/${filename}`;
+                            resetUI();
+                        }, 1000);
+                        return;
+                    }
 
-        function resetUI() {
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerText = "Tải Xuống Ngay";
-                progressContainer.style.display = "none";
-                progressBar.style.width = "0%";
-            }, 2000);
+                    let percent = parseFloat(prog);
+                    if(!isNaN(percent)) {
+                        document.getElementById('pFill').style.width = percent + '%';
+                        statusTxt.innerText = `⏳ Đang tải: ${percent}%`;
+                    }
+                };
+            }
+        } catch(e) {
+            resetUI();
+            statusTxt.innerHTML = "<span style='color:#ff6b6b'>🔌 Mất kết nối tới Server!</span>";
         }
+    }
+
+    async function cancelDownload() {
+        if(currentFileId) {
+            document.getElementById('cancelBtn').disabled = true;
+            document.getElementById('status').innerText = "⏳ Đang dừng và dọn rác...";
+            await fetch(`/api/cancel/${currentFileId}`, { method: 'POST' });
+        }
+    }
+
+    function resetUI() {
+        const btn = document.getElementById('btn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        btn.disabled = false;
+        btn.innerText = "Tải Xuống Ngay";
+        cancelBtn.style.display = "none";
+        cancelBtn.disabled = false;
+        document.getElementById('pBox').style.display = 'none';
+        currentFileId = null;
+
+        // Bổ sung: Chuyển sang thông báo hoàn tất, rồi xóa luôn sau 3 giây cho sạch sẽ
+        const statusTxt = document.getElementById('status');
+        statusTxt.innerHTML = "<span style='color:#51cf66'>✅ Đã hoàn tất!</span>";
+        setTimeout(() => {
+            statusTxt.innerHTML = "";
+        }, 3000);
     }
 </script>
 </body>
